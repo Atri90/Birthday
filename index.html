@@ -80,18 +80,18 @@
             }
         }
 
-        .background-image {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-size: contain;
-            background-position: center;
-            background-color: black;
-            animation: changeImage 25s infinite;
-        }
+     .background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    animation: changeImage 25s infinite;
+}
 
         @keyframes changeImage {
             0% { background-image: url('images/photo4.jpg'); }
