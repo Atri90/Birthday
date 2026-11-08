@@ -1,386 +1,368 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Birthday Timer</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<title>Ariha's Birthday Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /*
+    --w = width of the "content column".
+    Phones (portrait): the full screen width.
+    Laptops / landscape: matches the width of the 720x1600 photo shown at full
+    screen height (0.45 x height), so text sits neatly on top of the photo.
+  */
+  :root {
+    --w: 100vw;
+    --glass: rgba(0, 0, 0, 0.38);
+  }
+  @media (min-aspect-ratio: 4/5) {
+    :root { --w: max(45vh, 320px); }
+    @supports (height: 100dvh) {
+      :root { --w: max(45dvh, 320px); }
+    }
+  }
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #111;
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            color: white;
-            text-shadow: 2px 2px 4px #000;
-        }
+  /* ---------- Photo slideshow ---------- */
+  .slides { position: fixed; inset: 0; }
+  .slide {
+    position: absolute; inset: 0;
+    opacity: 0;
+    transition: opacity 1.6s ease-in-out;
+  }
+  .slide.active { opacity: 1; }
 
-        /* THREE IMAGE FRAMES */
+  /* Blurred copy of the photo fills the whole screen (only visible on wide screens) */
+  .slide .bg {
+    position: absolute; inset: -30px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(28px) brightness(.55);
+    display: none;
+  }
+  /* Sharp photo: fills the screen on phones */
+  .slide .fg {
+    position: absolute; inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .slide.active .fg { animation: kenburns 7s ease-out forwards; }
+  @keyframes kenburns {
+    from { transform: scale(1); }
+    to   { transform: scale(1.08); }
+  }
 
-        .background-container {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            overflow: hidden;
-            z-index: -2;
-            background: black;
-        }
+  /* Laptops / landscape: show whole portrait photo, centred, on blurred backdrop */
+  @media (min-aspect-ratio: 4/5) {
+    .slide .bg { display: block; }
+    .slide .fg {
+      background-size: contain;
+      animation: none !important;       /* no zoom, so nothing gets cropped */
+    }
+  }
 
-        .background-image {
-            flex: 1 1 33.3333%;
-            width: 33.3333%;
-            height: 100%;
-            min-width: 0;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
+  .overlay {
+    position: fixed; inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 30%,
+      rgba(0,0,0,0) 55%, rgba(0,0,0,.6) 100%);
+    pointer-events: none;
+    z-index: 2;
+  }
+  @media (min-aspect-ratio: 4/5) {
+    .overlay {                          /* gradient only over the photo column */
+      left: 50%; right: auto;
+      width: var(--w);
+      transform: translateX(-50%);
+    }
+  }
 
-        /* FRAME 1 */
+  /* ---------- Balloons ---------- */
+  .balloons { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 3; }
+  .balloon {
+    position: absolute;
+    bottom: -160px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    opacity: .9;
+    animation: floatUp linear forwards;
+    will-change: transform;
+  }
+  .balloon::before {
+    content: ""; position: absolute;
+    top: 14%; left: 20%; width: 20%; height: 25%;
+    background: rgba(255,255,255,.55);
+    border-radius: 50%;
+    transform: rotate(-30deg);
+  }
+  .balloon::after {
+    content: ""; position: absolute;
+    left: 50%; bottom: -34px;
+    width: 1.5px; height: 34px;
+    background: rgba(255,255,255,.7);
+    transform: translateX(-50%);
+  }
+  @keyframes floatUp {
+    0%   { transform: translate(0, 0) rotate(-4deg); }
+    25%  { transform: translate(var(--sway), -30vh) rotate(4deg); }
+    50%  { transform: translate(calc(var(--sway) * -1), -65vh) rotate(-4deg); }
+    75%  { transform: translate(var(--sway), -100vh) rotate(4deg); }
+    100% { transform: translate(0, -140vh) rotate(0deg); }
+  }
 
-        .frame1 {
-            animation: changeImage1 25s infinite;
-        }
+  /* ---------- Content column ---------- */
+  .content {
+    position: fixed;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: var(--w);
+    max-width: 100vw;
+    height: 100vh;
+    z-index: 4;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between;
+    padding: max(5vh, env(safe-area-inset-top)) calc(var(--w) * .04)
+             max(7vh, env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  @supports (height: 100dvh) {
+    .content { height: 100dvh; }
+  }
 
-        @keyframes changeImage1 {
-            0%, 100% {
-                background-image: url('images/photo.jpeg');
-            }
-            20% {
-                background-image: url('images/photo1.jpeg');
-            }
-            40% {
-                background-image: url('images/photo2.jpeg');
-            }
-            60% {
-                background-image: url('images/photo3.jpeg');
-            }
-            80% {
-                background-image: url('images/photo4.jpeg');
-            }
-        }
+  .title {
+    font-family: 'Pacifico', cursive;
+    font-size: calc(var(--w) * .085);
+    text-shadow: 0 3px 14px rgba(0,0,0,.7);
+  }
+  .subtitle {
+    font-size: calc(var(--w) * .033);
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    margin-top: .5rem;
+    opacity: .92;
+    text-shadow: 0 2px 8px rgba(0,0,0,.7);
+  }
 
-        /* FRAME 2 */
+  .countdown { display: flex; gap: calc(var(--w) * .03); justify-content: center; }
+  .box {
+    width: calc(var(--w) * .205);
+    padding: calc(var(--w) * .035) 4px;
+    background: var(--glass);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  .box span {
+    display: block;
+    font-size: calc(var(--w) * .088);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+  .box small {
+    font-size: calc(var(--w) * .026);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    opacity: .85;
+  }
 
-        .frame2 {
-            animation: changeImage2 25s infinite;
-        }
+  /* ---------- Birthday message ---------- */
+  .birthday {
+    display: none;
+    flex-direction: column; align-items: center; gap: .6rem;
+  }
+  .birthday h1 {
+    font-family: 'Pacifico', cursive;
+    font-size: calc(var(--w) * .13);
+    line-height: 1.15;
+    background: linear-gradient(90deg, #ffd86b, #ff7eb6, #7ee8ff, #ffd86b);
+    background-size: 300% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite, pop 1.2s ease-out;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.6));
+  }
+  .birthday p {
+    font-size: calc(var(--w) * .042);
+    text-shadow: 0 2px 10px rgba(0,0,0,.8);
+  }
+  @keyframes shimmer { to { background-position: 300% 0; } }
+  @keyframes pop {
+    0%   { transform: scale(.2); opacity: 0; }
+    70%  { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  body.done .countdown, body.done .subtitle { display: none; }
+  body.done .birthday { display: flex; }
 
-        @keyframes changeImage2 {
-            0%, 100% {
-                background-image: url('images/photo1.jpeg');
-            }
-            20% {
-                background-image: url('images/photo2.jpeg');
-            }
-            40% {
-                background-image: url('images/photo3.jpeg');
-            }
-            60% {
-                background-image: url('images/photo4.jpeg');
-            }
-            80% {
-                background-image: url('images/photo5.jpeg');
-            }
-        }
+  /* ---------- Confetti ---------- */
+  .confetti {
+    position: fixed; top: -12px;
+    width: 10px; height: 16px;
+    z-index: 5; pointer-events: none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); }
+  }
 
-        /* FRAME 3 */
+  /* Short landscape screens (phone turned sideways): tighten spacing */
+  @media (max-height: 480px) and (min-aspect-ratio: 4/5) {
+    .content { padding-top: 3vh; padding-bottom: 3vh; }
+    .subtitle { display: none; }
+  }
 
-        .frame3 {
-            animation: changeImage3 25s infinite;
-        }
-
-        @keyframes changeImage3 {
-            0%, 100% {
-                background-image: url('images/photo2.jpeg');
-            }
-            20% {
-                background-image: url('images/photo3.jpeg');
-            }
-            40% {
-                background-image: url('images/photo4.jpeg');
-            }
-            60% {
-                background-image: url('images/photo5.jpeg');
-            }
-            80% {
-                background-image: url('images/photo.jpeg');
-            }
-        }
-
-        /* DARK OVERLAY */
-
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.20);
-            z-index: -1;
-        }
-
-        /* COUNTDOWN */
-
-        h1 {
-            color: white;
-            text-align: center;
-            font-size: 2rem;
-            padding: 0 10px;
-        }
-
-        .timer {
-            font-size: 2rem;
-            color: #ffdf00;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .message {
-            font-size: 2.5rem;
-            color: #ff4500;
-            display: none;
-            text-align: center;
-            padding: 10px;
-        }
-
-        /* POPPERS AND BALLOONS */
-
-        .popper, .balloon {
-            position: absolute;
-            pointer-events: none;
-        }
-
-        .popper {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            animation: pop 2s ease-out forwards;
-        }
-
-        .balloon {
-            width: 40px;
-            height: 60px;
-            border-radius: 50%;
-            animation: float 4s ease-in-out forwards;
-        }
-
-        .balloon:before {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            width: 2px;
-            height: 10px;
-            background-color: white;
-        }
-
-        @keyframes pop {
-            0% {
-                transform: scale(0.5);
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateY(-300px) scale(1.5);
-                opacity: 0;
-            }
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0);
-                opacity: 1;
-            }
-
-            50% {
-                transform: translateY(-20px);
-            }
-
-            100% {
-                transform: translateY(-600px);
-                opacity: 0;
-            }
-        }
-
-        /* MOBILE RESPONSIVENESS */
-
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .timer {
-                font-size: 1.4rem;
-            }
-
-            .message {
-                font-size: 1.8rem;
-            }
-        }
-
-    </style>
+  /* Respect users who prefer less motion */
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active .fg { animation: none; }
+  }
+</style>
 </head>
-
 <body>
 
-    <!-- THREE BACKGROUND FRAMES -->
+<div class="slides" id="slides"></div>
+<div class="overlay"></div>
+<div class="balloons" id="balloons"></div>
 
-    <div class="background-container">
-        <div class="background-image frame1"></div>
-        <div class="background-image frame2"></div>
-        <div class="background-image frame3"></div>
+<div class="content">
+  <div>
+    <div class="title">Ariha's Birthday 🎂</div>
+    <div class="subtitle">Counting down to 20 November</div>
+  </div>
+
+  <div>
+    <div class="countdown" id="countdown">
+      <div class="box"><span id="d">00</span><small>Days</small></div>
+      <div class="box"><span id="h">00</span><small>Hours</small></div>
+      <div class="box"><span id="m">00</span><small>Minutes</small></div>
+      <div class="box"><span id="s">00</span><small>Seconds</small></div>
     </div>
-
-    <div class="overlay"></div>
-
-    <!-- BIRTHDAY COUNTDOWN -->
-
-    <h1>Countdown to Happy Birthday!</h1>
-
-    <div class="timer" id="timer">
-        Loading...
+    <div class="birthday" id="birthday">
+      <h1>Happy Birthday,<br>Ariha! 🎉</h1>
+      <p>Wishing you a day full of joy and love 💖</p>
     </div>
+  </div>
+</div>
 
-    <div class="message" id="message">
-        🎉 Happy Birthday Ariha! 🎂
-    </div>
+<script>
+  /* ================= SETTINGS ================= */
+  // Target: 20 November 2026, 00:00 (local time). Change as needed.
+  const TARGET = new Date(2026, 10, 20, 0, 0, 0);   // month is 0-based: 10 = November
+  const IMAGES = [
+    'images/photo.jpeg',
+    'images/photo1.jpeg',
+    'images/photo2.jpeg',
+    'images/photo3.jpeg',
+    'images/photo4.jpeg',
+    'images/photo5.jpeg'
+  ];
+  const SLIDE_MS = 5000;
+  // Add ?done to the URL to preview the birthday screen instantly.
+  const PREVIEW_DONE = new URLSearchParams(location.search).has('done');
+  /* ============================================ */
 
-    <script>
+  /* ---------- Slideshow ---------- */
+  const slidesEl = document.getElementById('slides');
+  const slides = IMAGES.map(src => {
+    const slide = document.createElement('div');
+    slide.className = 'slide';
+    ['bg', 'fg'].forEach(cls => {
+      const layer = document.createElement('div');
+      layer.className = cls;
+      layer.style.backgroundImage = `url("${src}")`;
+      slide.appendChild(layer);
+    });
+    slidesEl.appendChild(slide);
+    return slide;
+  });
+  let current = 0;
+  slides[0].classList.add('active');
+  setInterval(() => {
+    slides[current].classList.remove('active');
+    current = (current + 1) % slides.length;
+    slides[current].classList.add('active');
+  }, SLIDE_MS);
 
-        // SET BIRTHDAY DATE AND TIME
+  /* ---------- Balloons ---------- */
+  const balloonsEl = document.getElementById('balloons');
+  const COLORS = ['#ff5c8a', '#ffb347', '#ffd93d', '#6bcb77', '#4d96ff', '#b983ff', '#ff7eb6'];
+  function spawnBalloon() {
+    const b = document.createElement('div');
+    b.className = 'balloon';
+    // Scale balloons with screen size (smaller on phones, bigger on laptops)
+    const base = Math.min(Math.max(window.innerWidth * 0.07, 36), 70);
+    const size = base * (0.8 + Math.random() * 0.7);
+    const c = COLORS[Math.floor(Math.random() * COLORS.length)];
+    b.style.width = size + 'px';
+    b.style.height = size * 1.25 + 'px';
+    b.style.left = Math.random() * 95 + 'vw';
+    b.style.background = `radial-gradient(circle at 35% 30%, ${c}, ${c}cc 60%, ${c}99)`;
+    b.style.setProperty('--sway', (Math.random() * 40 - 20) + 'px');
+    const dur = 9 + Math.random() * 8;
+    b.style.animationDuration = dur + 's';
+    balloonsEl.appendChild(b);
+    setTimeout(() => b.remove(), dur * 1000);
+  }
+  setInterval(spawnBalloon, 700);
+  for (let i = 0; i < 6; i++) setTimeout(spawnBalloon, i * 250);
 
-        const birthdayDate = new Date('2026-11-20T00:00:00');
+  /* ---------- Confetti ---------- */
+  function confettiBurst(count = 120) {
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'confetti';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
+      p.style.animationDuration = 2.5 + Math.random() * 3 + 's';
+      p.style.animationDelay = Math.random() * 1.5 + 's';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 7500);
+    }
+  }
 
-        function updateTimer() {
+  /* ---------- Countdown ---------- */
+  const pad = n => String(n).padStart(2, '0');
+  const els = {
+    d: document.getElementById('d'),
+    h: document.getElementById('h'),
+    m: document.getElementById('m'),
+    s: document.getElementById('s')
+  };
+  let finished = false;
 
-            const now = new Date();
-            const timeDifference = birthdayDate - now;
+  function finish() {
+    if (finished) return;
+    finished = true;
+    document.body.classList.add('done');
+    confettiBurst();
+    setInterval(() => confettiBurst(40), 4000);
+  }
 
-            if (timeDifference <= 0) {
-
-                document.getElementById('timer').style.display = 'none';
-
-                document.getElementById('message').style.display = 'block';
-
-                clearInterval(timerInterval);
-
-                return;
-            }
-
-            const days = Math.floor(
-                timeDifference / (1000 * 60 * 60 * 24)
-            );
-
-            const hours = Math.floor(
-                (timeDifference % (1000 * 60 * 60 * 24)) /
-                (1000 * 60 * 60)
-            );
-
-            const minutes = Math.floor(
-                (timeDifference % (1000 * 60 * 60)) /
-                (1000 * 60)
-            );
-
-            const seconds = Math.floor(
-                (timeDifference % (1000 * 60)) / 1000
-            );
-
-            document.getElementById('timer').textContent =
-                `${days}d ${hours}h ${minutes}m ${seconds}s`;
-        }
-
-        // CONTINUOUS ANIMATIONS
-
-        function createContinuousAnimations() {
-
-            setInterval(launchPoppers, 1000);
-
-            setInterval(launchBalloons, 2000);
-        }
-
-        // LAUNCH COLOURFUL POPPERS
-
-        function launchPoppers() {
-
-            for (let i = 0; i < 20; i++) {
-
-                const popper = document.createElement('div');
-
-                popper.classList.add('popper');
-
-                popper.style.backgroundColor = getRandomColor();
-
-                popper.style.left = Math.random() * 100 + 'vw';
-
-                popper.style.top = '100vh';
-
-                document.body.appendChild(popper);
-
-                setTimeout(() => popper.remove(), 2000);
-            }
-        }
-
-        // LAUNCH BALLOONS
-
-        function launchBalloons() {
-
-            for (let i = 0; i < 5; i++) {
-
-                const balloon = document.createElement('div');
-
-                balloon.classList.add('balloon');
-
-                balloon.style.backgroundColor = getRandomColor();
-
-                balloon.style.left = Math.random() * 100 + 'vw';
-
-                balloon.style.bottom = '-100px';
-
-                document.body.appendChild(balloon);
-
-                setTimeout(() => balloon.remove(), 4000);
-            }
-        }
-
-        // RANDOM COLOURS
-
-        function getRandomColor() {
-
-            const letters = '0123456789ABCDEF';
-
-            let color = '#';
-
-            for (let i = 0; i < 6; i++) {
-
-                color += letters[
-                    Math.floor(Math.random() * 16)
-                ];
-            }
-
-            return color;
-        }
-
-        // UPDATE COUNTDOWN EVERY SECOND
-
-        const timerInterval = setInterval(updateTimer, 1000);
-
-        updateTimer();
-
-        // START ANIMATIONS
-
-        createContinuousAnimations();
-
-    </script>
-
+  function tick() {
+    const diff = PREVIEW_DONE ? 0 : TARGET - new Date();
+    if (diff <= 0) { finish(); return; }
+    const total = Math.floor(diff / 1000);
+    els.d.textContent = pad(Math.floor(total / 86400));
+    els.h.textContent = pad(Math.floor((total % 86400) / 3600));
+    els.m.textContent = pad(Math.floor((total % 3600) / 60));
+    els.s.textContent = pad(total % 60);
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
 </body>
 </html>
-```
