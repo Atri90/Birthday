@@ -1,10 +1,16 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Birthday Timer</title>
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -13,40 +19,160 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #fad0c4 100%);
             overflow: hidden;
             color: white;
             text-shadow: 2px 2px 4px #000;
         }
-        h1 {
-            color: #fff;
+
+        /* THREE IMAGE FRAMES */
+
+        .background-container {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            overflow: hidden;
+            z-index: -2;
+            background: black;
         }
+
+        .background-image {
+            flex: 1 1 33.3333%;
+            width: 33.3333%;
+            height: 100%;
+            min-width: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* FRAME 1 */
+
+        .frame1 {
+            animation: changeImage1 25s infinite;
+        }
+
+        @keyframes changeImage1 {
+            0%, 100% {
+                background-image: url('images/photo.jpeg');
+            }
+            20% {
+                background-image: url('images/photo1.jpeg');
+            }
+            40% {
+                background-image: url('images/photo2.jpeg');
+            }
+            60% {
+                background-image: url('images/photo3.jpeg');
+            }
+            80% {
+                background-image: url('images/photo4.jpeg');
+            }
+        }
+
+        /* FRAME 2 */
+
+        .frame2 {
+            animation: changeImage2 25s infinite;
+        }
+
+        @keyframes changeImage2 {
+            0%, 100% {
+                background-image: url('images/photo1.jpeg');
+            }
+            20% {
+                background-image: url('images/photo2.jpeg');
+            }
+            40% {
+                background-image: url('images/photo3.jpeg');
+            }
+            60% {
+                background-image: url('images/photo4.jpeg');
+            }
+            80% {
+                background-image: url('images/photo5.jpeg');
+            }
+        }
+
+        /* FRAME 3 */
+
+        .frame3 {
+            animation: changeImage3 25s infinite;
+        }
+
+        @keyframes changeImage3 {
+            0%, 100% {
+                background-image: url('images/photo2.jpeg');
+            }
+            20% {
+                background-image: url('images/photo3.jpeg');
+            }
+            40% {
+                background-image: url('images/photo4.jpeg');
+            }
+            60% {
+                background-image: url('images/photo5.jpeg');
+            }
+            80% {
+                background-image: url('images/photo.jpeg');
+            }
+        }
+
+        /* DARK OVERLAY */
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.20);
+            z-index: -1;
+        }
+
+        /* COUNTDOWN */
+
+        h1 {
+            color: white;
+            text-align: center;
+            font-size: 2rem;
+            padding: 0 10px;
+        }
+
         .timer {
             font-size: 2rem;
             color: #ffdf00;
             margin: 20px 0;
+            text-align: center;
         }
+
         .message {
             font-size: 2.5rem;
             color: #ff4500;
             display: none;
+            text-align: center;
+            padding: 10px;
         }
+
+        /* POPPERS AND BALLOONS */
+
         .popper, .balloon {
             position: absolute;
+            pointer-events: none;
         }
+
         .popper {
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            animation: pop 2s ease-out infinite;
+            animation: pop 2s ease-out forwards;
         }
+
         .balloon {
             width: 40px;
             height: 60px;
-            background-color: #ff69b4;
-            border-radius: 20px 20px 0 0;
-            animation: float 4s ease-in-out infinite;
+            border-radius: 50%;
+            animation: float 4s ease-in-out forwards;
         }
+
         .balloon:before {
             content: '';
             position: absolute;
@@ -56,133 +182,205 @@
             height: 10px;
             background-color: white;
         }
+
         @keyframes pop {
             0% {
                 transform: scale(0.5);
                 opacity: 1;
             }
+
             100% {
                 transform: translateY(-300px) scale(1.5);
                 opacity: 0;
             }
         }
+
         @keyframes float {
             0% {
                 transform: translateY(0);
                 opacity: 1;
             }
+
             50% {
                 transform: translateY(-20px);
             }
+
             100% {
                 transform: translateY(-600px);
                 opacity: 0;
             }
         }
 
-.background-image {
-    position: fixed;
-    width: min(100vw, 45vh);
-    aspect-ratio: 9 / 20;
-    height: auto;
+        /* MOBILE RESPONSIVENESS */
 
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
 
-    z-index: -1;
-    background-size: 100% 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: black;
+            .timer {
+                font-size: 1.4rem;
+            }
 
-    animation: changeImage 25s infinite;
-}
-
-        @keyframes changeImage {
-            0% { background-image: url('images/photo4.jpeg'); }
-            20% { background-image: url('images/photo.jpeg'); }
-            40% { background-image: url('images/photo1.jpeg'); }
-            60% { background-image: url('images/photo2.jpeg'); }
-            80% { background-image: url('images/photo3.jpeg'); }
-            100% { background-image: url('images/photo5.jpeg'); }
+            .message {
+                font-size: 1.8rem;
+            }
         }
 
     </style>
 </head>
+
 <body>
-    <div class="background-image"></div>
+
+    <!-- THREE BACKGROUND FRAMES -->
+
+    <div class="background-container">
+        <div class="background-image frame1"></div>
+        <div class="background-image frame2"></div>
+        <div class="background-image frame3"></div>
+    </div>
+
+    <div class="overlay"></div>
+
+    <!-- BIRTHDAY COUNTDOWN -->
+
     <h1>Countdown to Happy Birthday!</h1>
-    <div class="timer" id="timer">Loading...</div>
-    <div class="message" id="message">🎉 Happy Birthday Ariha! 🎂</div>
+
+    <div class="timer" id="timer">
+        Loading...
+    </div>
+
+    <div class="message" id="message">
+        🎉 Happy Birthday Ariha! 🎂
+    </div>
 
     <script>
-        // Set the birthday date and time
-        const birthdayDate = new Date('2026-11-20T00:00:00'); // Set to 21st December midnight
+
+        // SET BIRTHDAY DATE AND TIME
+
+        const birthdayDate = new Date('2026-11-20T00:00:00');
 
         function updateTimer() {
+
             const now = new Date();
             const timeDifference = birthdayDate - now;
 
             if (timeDifference <= 0) {
+
                 document.getElementById('timer').style.display = 'none';
+
                 document.getElementById('message').style.display = 'block';
+
                 clearInterval(timerInterval);
+
                 return;
             }
 
-            const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+            const days = Math.floor(
+                timeDifference / (1000 * 60 * 60 * 24)
+            );
 
-            document.getElementById('timer').textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            const hours = Math.floor(
+                (timeDifference % (1000 * 60 * 60 * 24)) /
+                (1000 * 60 * 60)
+            );
+
+            const minutes = Math.floor(
+                (timeDifference % (1000 * 60 * 60)) /
+                (1000 * 60)
+            );
+
+            const seconds = Math.floor(
+                (timeDifference % (1000 * 60)) / 1000
+            );
+
+            document.getElementById('timer').textContent =
+                `${days}d ${hours}h ${minutes}m ${seconds}s`;
         }
+
+        // CONTINUOUS ANIMATIONS
 
         function createContinuousAnimations() {
-            setInterval(launchPoppers, 1000); // Launch poppers every second
-            setInterval(launchBalloons, 2000); // Launch balloons every 2 seconds
+
+            setInterval(launchPoppers, 1000);
+
+            setInterval(launchBalloons, 2000);
         }
 
+        // LAUNCH COLOURFUL POPPERS
+
         function launchPoppers() {
+
             for (let i = 0; i < 20; i++) {
+
                 const popper = document.createElement('div');
+
                 popper.classList.add('popper');
+
                 popper.style.backgroundColor = getRandomColor();
+
                 popper.style.left = Math.random() * 100 + 'vw';
+
                 popper.style.top = '100vh';
+
                 document.body.appendChild(popper);
+
                 setTimeout(() => popper.remove(), 2000);
             }
         }
 
+        // LAUNCH BALLOONS
+
         function launchBalloons() {
+
             for (let i = 0; i < 5; i++) {
+
                 const balloon = document.createElement('div');
+
                 balloon.classList.add('balloon');
+
                 balloon.style.backgroundColor = getRandomColor();
+
                 balloon.style.left = Math.random() * 100 + 'vw';
+
                 balloon.style.bottom = '-100px';
+
                 document.body.appendChild(balloon);
+
                 setTimeout(() => balloon.remove(), 4000);
             }
         }
 
+        // RANDOM COLOURS
+
         function getRandomColor() {
+
             const letters = '0123456789ABCDEF';
+
             let color = '#';
+
             for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
+
+                color += letters[
+                    Math.floor(Math.random() * 16)
+                ];
             }
+
             return color;
         }
 
-        // Update the timer every second
+        // UPDATE COUNTDOWN EVERY SECOND
+
         const timerInterval = setInterval(updateTimer, 1000);
+
         updateTimer();
 
-        // Start continuous animations
+        // START ANIMATIONS
+
         createContinuousAnimations();
+
     </script>
+
 </body>
 </html>
+```
