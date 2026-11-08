@@ -80,16 +80,22 @@
             }
         }
 
-     .background-image {
+.background-image {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: min(100vw, 45vh);
+    aspect-ratio: 9 / 20;
+    height: auto;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
     z-index: -1;
     background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;
+    background-color: black;
+
     animation: changeImage 25s infinite;
 }
 
